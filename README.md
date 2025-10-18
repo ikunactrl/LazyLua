@@ -108,7 +108,8 @@ Feel free to submit Issues and Pull Requests to improve LazyLua.
 
 ---
 
-<a id="zh-cn"></a> # LazyLua
+<a id="zh-cn"></a>
+# LazyLua
 
 LazyLua 是一个为 Lua 提供扩展功能的库，包含高精度数学运算、增强字符串处理和排序算法等功能。该库设计用于处理大整数运算和复杂字符串操作，同时提供了灵活的排序功能。
 
