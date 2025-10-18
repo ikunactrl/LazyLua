@@ -210,5 +210,3 @@ print(LazyLua.Sort.applyIndices(sorted_indices, numbers)) -- 输出排序后的�
 - 实现高精度数学运算 (`Math` 模块)
 - 实现增强字符串处理 (`String` 模块)
 - 实现排序算法 (`Sort` 模块)
-
-```
