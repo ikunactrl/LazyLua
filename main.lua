@@ -745,3 +745,5 @@ end
 Mathinit()
 Stringinit()
 Sortinit()
+
+return LazyLua
