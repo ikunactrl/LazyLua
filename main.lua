@@ -1,8 +1,8 @@
 --[[
-LazyLua ver1.0.0.
+LazyLua ver1.2.0
 by ikunactrl.
 Starttime: 2025/10/17
-Release date of this version: 2025/10/18
+Release date of this version: 2025/11/8
 
 This project is licensed under the MIT License. See https://opensource.org/licenses/MIT
 for details.
@@ -25,6 +25,68 @@ function Mathinit()
         if LazyLua.Math.lessThan(b, '0') then
             error("mathadd: b must be >= 0, but got b=" .. b)
         end
+
+        -- 直接对大于20位的数字进行超长分块处理最大化效率！！！！
+        if #a > 12 or #b > 12 then
+            local base = 10 ^ 12
+            local width = 12
+            local function split_chunks(s)
+                local chunks = {}
+                local len = #s
+                local i = len
+                local c = 1
+                while i > 0 do
+                    local start = math.max(1, i - width + 1)
+                    chunks[c] = tonumber(s:sub(start, i))
+                    c = c + 1
+                    i = i - width
+                end
+                return chunks
+            end
+
+            local A = split_chunks(a)
+            local B = split_chunks(b)
+
+            local lenA, lenB = #A, #B
+            local result = {}
+
+            for i = 1, math.max(lenA, lenB) do
+                local digitA = A[i] or 0
+                local digitB = B[i] or 0
+                result[i] = (result[i] or 0) + digitA + digitB
+            end
+
+            -- 处理进位（按 base）
+            local carry = 0
+            for i = 1, #result do
+                local total = (result[i] or 0) + carry
+                result[i] = total % base
+                carry = math.floor(total / base)
+            end
+            while carry > 0 do
+                result[#result + 1] = carry % base
+                carry = math.floor(carry / base)
+            end
+
+            -- 转字符串，每块宽度为 width，最高位不补零
+            local resstr = ""
+            local started = false
+            for i = #result, 1, -1 do
+                local v = result[i] or 0
+                if not started then
+                    if v ~= 0 then
+                        resstr = resstr .. tostring(v)
+                        started = true
+                    end
+                else
+                    resstr = resstr .. string.format("%0" .. width .. "d", v)
+                end
+            end
+            if resstr == "" then resstr = "0" end
+            return LazyLua.Math.normalize(resstr)
+        end
+
+        -- 传统逐位加法
         local i = #a
         local c = 1
         local A = {}
@@ -69,10 +131,75 @@ function Mathinit()
         end
         return LazyLua.Math.normalize(resstr)
     end
+
     local function mathsub(a, b)
         if LazyLua.Math.lessThan(a, b) then
             error("mathsub: a must be >= b, but got a=" .. a .. ", b=" .. b)
         end
+
+        -- 直接对大于12位的数字进行超长分块处理最大化效率！！！！
+        if #a > 12 or #b > 12 then
+            local base = 10 ^ 12
+            local width = 12
+            local function split_chunks(s)
+                local chunks = {}
+                local len = #s
+                local i = len
+                local c = 1
+                while i > 0 do
+                    local start = math.max(1, i - width + 1)
+                    chunks[c] = tonumber(s:sub(start, i))
+                    c = c + 1
+                    i = i - width
+                end
+                return chunks
+            end
+
+            local A = split_chunks(a)
+            local B = split_chunks(b)
+
+            local lenA, lenB = #A, #B
+            local result = {}
+
+            -- 将A复制到result中
+            for i = 1, lenA do
+                result[i] = A[i] or 0
+            end
+
+            -- 从低位开始减法，处理借位
+            local borrow = 0
+            for i = 1, lenA do
+                local digitA = result[i] or 0
+                local digitB = (i <= lenB) and B[i] or 0
+                local diff = digitA - digitB - borrow
+                if diff < 0 then
+                    diff = diff + base
+                    borrow = 1
+                else
+                    borrow = 0
+                end
+                result[i] = diff
+            end
+
+            -- 转字符串，每块宽度为 width，最高位不补零
+            local resstr = ""
+            local started = false
+            for i = #result, 1, -1 do
+                local v = result[i] or 0
+                if not started then
+                    if v ~= 0 then
+                        resstr = resstr .. tostring(v)
+                        started = true
+                    end
+                else
+                    resstr = resstr .. string.format("%0" .. width .. "d", v)
+                end
+            end
+            if resstr == "" then resstr = "0" end
+            return LazyLua.Math.normalize(resstr)
+        end
+
+        -- 传统逐位减法
         local i = #a
         local c = 1
         local A = {}
@@ -120,100 +247,283 @@ function Mathinit()
     local function mathmul(a, b)
         a = LazyLua.Math.normalize(a)
         b = LazyLua.Math.normalize(b)
-        -- 输入检查
-        if LazyLua.Math.lessThan(a, '0') then
-            error("mathmul: a must be >= 0, but got a=" .. a)
+        if a == '0' or b == '0' then return '0' end
+        if a == '1' then return b end
+        if b == '1' then return a end
+
+        -- 小数字：直接朴素乘（< 100 位）
+        if #a <= 100 and #b <= 100 then
+            local lenA, lenB = #a, #b
+            local res = {}
+            for i = 1, lenA do
+                local da = a:byte(lenA - i + 1) - 48
+                local carry = 0
+                for j = 1, lenB do
+                    local db = b:byte(lenB - j + 1) - 48
+                    local pos = i + j - 1
+                    local sum = (res[pos] or 0) + da * db + carry
+                    res[pos] = sum % 10
+                    carry = math.floor((sum - res[pos]) / 10)
+                end
+                local pos = i + lenB
+                while carry > 0 do
+                    local sum = (res[pos] or 0) + carry
+                    res[pos] = sum % 10
+                    carry = math.floor((sum - res[pos]) / 10)
+                    pos = pos + 1
+                end
+            end
+            local s = {}
+            local i = #res
+            while i > 0 and res[i] == 0 do i = i - 1 end
+            if i == 0 then return '0' end
+            for k = i, 1, -1 do s[#s + 1] = string.char(res[k] + 48) end
+            return table.concat(s)
         end
-        if LazyLua.Math.lessThan(b, '0') then
-            error("mathmul: b must be >= 0, but got b=" .. b)
+
+        -- === 大数处理：分块 + Karatsuba ===
+        local BASE = 1000000 -- 10^6，安全整数
+        local WIDTH = 6
+
+        -- 字符串 → 块数组（低位在前）
+        local function to_chunks(s)
+            local chunks = {}
+            local i = #s
+            while i > 0 do
+                local start = math.max(1, i - WIDTH + 1)
+                chunks[#chunks + 1] = tonumber(s:sub(start, i))
+                i = start - 1
+            end
+            return chunks
         end
+
+        -- 块数组 → 字符串
+        local function from_chunks(chunks)
+            if #chunks == 0 then return '0' end
+            local parts = {}
+            parts[1] = tostring(chunks[#chunks])
+            for i = #chunks - 1, 1, -1 do
+                parts[#parts + 1] = string.format("%06d", chunks[i])
+            end
+            return table.concat(parts)
+        end
+
+        -- 块数组加法（a += b）
+        local function add_chunks(a, b)
+            local carry = 0
+            local n = math.max(#a, #b)
+            for i = 1, n do
+                local sum = (a[i] or 0) + (b[i] or 0) + carry
+                if sum >= BASE then
+                    a[i] = sum - BASE
+                    carry = 1
+                else
+                    a[i] = sum
+                    carry = 0
+                end
+            end
+            if carry > 0 then a[n + 1] = carry end
+            return a
+        end
+
+        -- 块数组减法（a -= b，要求 a >= b）
+        local function sub_chunks(a, b)
+            local borrow = 0
+            for i = 1, #b do
+                local diff = a[i] - b[i] - borrow
+                if diff < 0 then
+                    a[i] = diff + BASE
+                    borrow = 1
+                else
+                    a[i] = diff
+                    borrow = 0
+                end
+            end
+            local i = #b + 1
+            while borrow > 0 do
+                local diff = a[i] - borrow
+                if diff < 0 then
+                    a[i] = diff + BASE
+                    borrow = 1
+                else
+                    a[i] = diff
+                    borrow = 0
+                end
+                i = i + 1
+            end
+            -- 移除前导零
+            while #a > 1 and a[#a] == 0 do
+                a[#a] = nil
+            end
+            return a
+        end
+
+        -- 朴素分块乘法（用于小块）
+        local function mul_naive(x, y)
+            local res = {}
+            for i = 1, #x do
+                local carry = 0
+                for j = 1, #y do
+                    local pos = i + j - 1
+                    local prod = (res[pos] or 0) + x[i] * y[j] + carry
+                    carry = math.floor(prod / BASE)
+                    res[pos] = prod - carry * BASE
+                end
+                local pos = i + #y
+                while carry > 0 do
+                    local sum = (res[pos] or 0) + carry
+                    carry = math.floor(sum / BASE)
+                    res[pos] = sum - carry * BASE
+                    pos = pos + 1
+                end
+            end
+            return res
+        end
+
+        -- Karatsuba 乘法
+        local function karatsuba(x, y)
+            if #x < 32 or #y < 32 then
+                return mul_naive(x, y)
+            end
+
+            local n = math.max(#x, #y)
+            local half = math.floor((n + 1) / 2)
+
+            -- 拆分 x = x1 * B^half + x0
+            local x0, x1 = {}, {}
+            for i = 1, half do x0[i] = x[i] or 0 end
+            for i = half + 1, #x do x1[i - half] = x[i] end
+            while #x0 > 1 and x0[#x0] == 0 do x0[#x0] = nil end
+            while #x1 > 1 and x1[#x1] == 0 do x1[#x1] = nil end
+
+            -- 拆分 y = y1 * B^half + y0
+            local y0, y1 = {}, {}
+            for i = 1, half do y0[i] = y[i] or 0 end
+            for i = half + 1, #y do y1[i - half] = y[i] end
+            while #y0 > 1 and y0[#y0] == 0 do y0[#y0] = nil end
+            while #y1 > 1 and y1[#y1] == 0 do y1[#y1] = nil end
+
+            -- 递归计算
+            local z0 = karatsuba(x0, y0) -- x0 * y0
+            local z2 = karatsuba(x1, y1) -- x1 * y1
+
+            local x0_copy = {}
+            for i = 1, #x0 do x0_copy[i] = x0[i] end
+            local x01 = add_chunks(x0_copy, x1)
+
+            local y0_copy = {}
+            for i = 1, #y0 do y0_copy[i] = y0[i] end
+            local y01 = add_chunks(y0_copy, y1)
+
+            local z1 = karatsuba(x01, y01) -- (x0+x1)*(y0+y1)
+            z1 = sub_chunks(z1, z0)        -- z1 - z0
+            z1 = sub_chunks(z1, z2)        -- z1 - z0 - z2
+
+            -- 结果 = z2 * B^(2*half) + z1 * B^half + z0
+            local res = {}
+            -- z0
+            for i = 1, #z0 do res[i] = z0[i] end
+            -- z1 * B^half
+            for i = 1, #z1 do
+                local idx = i + half
+                res[idx] = (res[idx] or 0) + z1[i]
+            end
+            -- z2 * B^(2*half)
+            for i = 1, #z2 do
+                local idx = i + 2 * half
+                res[idx] = (res[idx] or 0) + z2[i]
+            end
+
+            -- 处理进位
+            local carry = 0
+            for i = 1, #res do
+                local total = (res[i] or 0) + carry
+                carry = math.floor(total / BASE)
+                res[i] = total - carry * BASE
+            end
+            while carry > 0 do
+                res[#res + 1] = carry % BASE
+                carry = math.floor(carry / BASE)
+            end
+
+            return res
+        end
+
+        -- 主逻辑
+        local A = to_chunks(a)
+        local B = to_chunks(b)
+        local C = karatsuba(A, B)
+        return from_chunks(C)
+    end
+
+
+    local function mathdiv(a, b, up_to)
+        up_to = up_to or 50
         a = LazyLua.Math.normalize(a)
         b = LazyLua.Math.normalize(b)
 
-        if a == '0' or b == '0' then
-            return '0'
-        end
+        if b == "0" then error("Division by zero") end
+        if a == "0" then return "0" end
 
         local lenA, lenB = #a, #b
-        local result = {}
 
-        -- 竖式乘法
-        for i = 1, lenA do
-            local digitA = tonumber(a:sub(lenA - i + 1, lenA - i + 1))
-            local carry = 0
-            for j = 1, lenB do
-                local digitB = tonumber(b:sub(lenB - j + 1, lenB - j + 1))
-                local pos = i + j - 1
-                local temp = (result[pos] or 0) + digitA * digitB + carry
-                result[pos] = temp % 10
-                carry = math.floor(temp / 10)
-            end
-            -- 处理进位
-            local pos = i + lenB
-            while carry > 0 do
-                local temp = (result[pos] or 0) + carry
-                result[pos] = temp % 10
-                carry = math.floor(temp / 10)
-                pos = pos + 1
-            end
+        -- 快速判断：如果 a < b，商为 0
+        if lenA < lenB or (lenA == lenB and LazyLua.Math.lessThan(a, b)) then
+            return "0"
         end
 
-        -- 转字符串
-        local resstr = ""
-        local leading = true
-        for i = #result, 1, -1 do
-            if leading and result[i] == 0 then
+        -- 计算商的位数（整数部分）
+        local quotient_digits_needed = lenA - lenB + 1
+        if lenA >= lenB and LazyLua.Math.lessThan(a:sub(1, lenB), b) then
+            quotient_digits_needed = quotient_digits_needed - 1
+        end
+
+        -- 如果商总共都不足 up_to 位，就全算
+        local total_digits_to_produce = math.min(up_to, quotient_digits_needed)
+        if total_digits_to_produce <= 0 then
+            return "0"
+        end
+
+        -- 关键：确定从 a 的哪一位开始能产生第一个商位
+        local start_pos = lenA - quotient_digits_needed + 1 -- 第一个商位对应 a 的起始消费位置
+
+        -- 初始化 remainder 为 a 的前 (start_pos - 1) 位？不，更简单：
+        local remainder = a:sub(1, start_pos - 1) -- 可能为空
+        if remainder == "" then remainder = "0" end
+        remainder = LazyLua.Math.normalize(remainder)
+
+        local quotient_digits = {}
+
+        -- 从第 start_pos 位开始，产生 total_digits_to_produce 位商
+        for i = 0, total_digits_to_produce - 1 do
+            local pos = start_pos + i
+            if pos <= lenA then
+                remainder = remainder .. a:sub(pos, pos)
             else
-                leading = false
-                resstr = resstr .. result[i]
+                remainder = remainder .. "0" -- 补零（虽然整数除法通常不需要）
             end
-        end
+            remainder = LazyLua.Math.normalize(remainder)
 
-        return LazyLua.Math.normalize(resstr)
-    end
-    local function mathdiv(a, b)
-        -- 输入检查
-        if b == "0" then
-            error("mathdiv: division by zero")
-        end
-        if a == "0" then
-            return "0"
-        end
-
-        -- 确保 a >= 0, b > 0（我们只处理正整数）
-        a = LazyLua.Math.normalize(a)
-        b = LazyLua.Math.normalize(b)
-
-        -- 如果 a < b，商为 0
-        if LazyLua.Math.greaterThan(b, a) then
-            return "0"
-        end
-
-        local quotient = "0" -- 商
-
-        -- 主循环：不断从 a 中减去尽可能大的 b * 10^k
-        while LazyLua.Math.greaterThanOrEqual(a, b) do
-            local factor = "1" -- 当前倍数，比如 1, 10, 100...
-            local currentB = b -- b * factor
-
-            -- 倍增：找到最大的 currentB <= a
-            while true do
-                local nextB = LazyLua.Math.mul(currentB, "10") -- currentB * 10
-                if LazyLua.Math.greaterThan(nextB, a) then
-                    break                                      -- 超了，退出
+            local q_digit = "0"
+            for try = 9, 1, -1 do
+                local prod = mathmul(b, try) -- 安全的 ×0~9
+                if not LazyLua.Math.lessThan(remainder, prod) then
+                    q_digit = tostring(try)
+                    remainder = mathsub(remainder, prod)
+                    break
                 end
-
-                currentB = nextB
-                factor = LazyLua.Math.mul(factor, "10")
             end
-            -- 现在 currentB <= a，可以减
-            a = LazyLua.Math.sub(a, currentB)
-            quotient = LazyLua.Math.add(quotient, factor)
+            table.insert(quotient_digits, q_digit)
         end
-        return LazyLua.Math.normalize(quotient)
+
+        local result = table.concat(quotient_digits)
+        -- 注意：这里不会有多余前导零，因为我们从第一个有效位开始
+        return result
     end
-    function LazyLua.Math.normalize(s)
+
+    function LazyLua.Math.normalize(s_)
         -- 如果是空字符串，返回 "0"
+        local s = tostring(s_)
         if s == "" then return "0" end
 
         local neg = false
@@ -225,7 +535,6 @@ function Mathinit()
             i = 2 -- 从第2个字符开始看数字部分
         end
 
-        -- 找到第一个非零数字的位置
         while i <= #s and string.sub(s, i, i) == '0' do
             i = i + 1
         end
@@ -359,22 +668,22 @@ function Mathinit()
         return mathmul(a, b)
     end
 
-    function LazyLua.Math.div(a, b)
+    function LazyLua.Math.div(a, b, up_to)
         local a1 = string.sub(a, 1, 1)
         local b1 = string.sub(b, 1, 1)
         if a1 == '-' and b1 == '-' then
             -- -a / -b => -a * -(1/b) => a * 1/b => a / b
             a = string.sub(a, 2)
             b = string.sub(b, 2)
-            return mathdiv(a, b)
+            return mathdiv(a, b, up_to or 50)
         end
         if a1 == '-' or b1 == '-' then
             -- ±a / ±b (a,b其中必有一个小于0) => -（|a| / |b|)
             if a1 == '-' then a = string.sub(a, 2) end
             if b1 == '-' then b = string.sub(b, 2) end
-            return '-' .. mathdiv(a, b)
+            return '-' .. mathdiv(a, b, up_to or 50)
         end
-        return mathdiv(a, b)
+        return mathdiv(a, b, up_to or 50)
     end
 end
 
@@ -584,6 +893,7 @@ function Stringinit()
         end
         return tableResult
     end
+
     --- 从二维表的每个子表中取出指定索引的值，返回一个一维数组
     --- @param table2D table 二维表（如 LazyLua.String.to2DTable 返回的结构）
     --- @param index number|string 索引（数字表示位置，支持负数从末尾计；字符串表示键）
