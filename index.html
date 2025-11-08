@@ -80,7 +80,9 @@
                     <a href="#installation" class="text-gray-300 hover:text-primary transition-colors">Installation</a>
                     <a href="#examples" class="text-gray-300 hover:text-primary transition-colors">Examples</a>
                     <a href="#api" class="text-gray-300 hover:text-primary transition-colors">API</a>
-                    <a href="LazyLua.lua" download
+                    <a href="#performance" class="text-gray-300 hover:text-primary transition-colors">Performance</a>
+                    <a href="#changelog" class="text-gray-300 hover:text-primary transition-colors">Changelog</a>
+                    <a href="main.lua"
                         class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md transition-colors">
                         <i class="fa fa-download mr-1"></i> Download
                     </a>
@@ -93,6 +95,7 @@
             </div>
         </div>
     </nav>
+
 
     <!-- Hero Section -->
     <header class="pt-32 pb-20 md:pt-40 md:pb-28 relative overflow-hidden">
@@ -107,8 +110,7 @@
                     Powerful Tools
                 </h1>
                 <p class="text-xl text-gray-300 mb-10">
-                    LazyLua provides high-precision math, enhanced string processing, and flexible sorting algorithms
-                    for Lua.
+                    LazyLua provides high-precision math (supports negative numbers), enhanced string processing, and flexible sorting algorithms for Lua.
                 </p>
                 <div class="flex flex-col sm:flex-row justify-center gap-4">
                     <a href="#installation"
@@ -122,7 +124,7 @@
                 </div>
                 <div class="mt-12 inline-flex items-center px-4 py-2 bg-darker/50 border border-primary/20 rounded-md">
                     <span class="text-gray-400 mr-2">Current Version:</span>
-                    <span class="font-mono font-medium">v1.0.0</span>
+                    <span class="font-mono font-medium">v1.2.0</span>
                 </div>
             </div>
         </div>
@@ -133,8 +135,7 @@
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
                 <h2 class="text-3xl md:text-4xl font-bold mb-4">Powerful Features</h2>
-                <p class="text-gray-400 max-w-2xl mx-auto">LazyLua extends Lua with essential functionality for complex
-                    applications</p>
+                <p class="text-gray-400 max-w-2xl mx-auto">LazyLua extends Lua with essential functionality for complex applications</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -144,8 +145,7 @@
                         <i class="fa fa-calculator text-primary text-xl"></i>
                     </div>
                     <h3 class="text-xl font-semibold mb-3">High-Precision Math</h3>
-                    <p class="text-gray-400">Perform addition, subtraction, multiplication, and division of arbitrarily
-                        large non-negative integers without precision loss.</p>
+                    <p class="text-gray-400">Perform addition, subtraction, multiplication, and division of arbitrarily large integers (including negative numbers) without precision loss. Optimized for performance.</p>
                 </div>
 
                 <!-- Feature 2 -->
@@ -154,8 +154,7 @@
                         <i class="fa fa-font text-primary text-xl"></i>
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Enhanced Strings</h3>
-                    <p class="text-gray-400">Handle UTF-8 encoded strings with proper character access, length
-                        calculation, substring operations, splitting, and replacement.</p>
+                    <p class="text-gray-400">Handle UTF-8 encoded strings with proper character access, length calculation, substring operations, splitting, joining, and advanced search capabilities.</p>
                 </div>
 
                 <!-- Feature 3 -->
@@ -164,8 +163,7 @@
                         <i class="fa fa-sort-numeric-asc text-primary text-xl"></i>
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Sorting Algorithms</h3>
-                    <p class="text-gray-400">Implement index-based bubble sort and quicksort with support for both
-                        ascending and descending order arrangements.</p>
+                    <p class="text-gray-400">Implement index-based bubble sort and quicksort with support for both ascending and descending order arrangements. Stable and fast options available.</p>
                 </div>
             </div>
         </div>
@@ -240,12 +238,24 @@ local result = LazyLua.Math.add(
 )
 print(result) -- Output: 111111111011111111100
 
--- High-precision multiplication
-local product = LazyLua.Math.mul(
-    "123456789", 
-    "987654321"
+-- Negative number operations
+local result2 = LazyLua.Math.add("-123", "456")
+print(result2) -- Output: 333
+
+-- Division with precision control
+local div_result = LazyLua.Math.div(
+    "100000000000000000000", 
+    "3", 
+    10 -- 10 decimal places
 )
-print(product) -- Output: 121932631112635269</pre>
+print(div_result) -- Output: 33333333333333333333
+
+-- Large number multiplication
+local big_result = LazyLua.Math.mul(
+    "123456789012345678901234567890", 
+    "987654321098765432109876543210"
+)
+print(big_result)</pre>
                         </div>
                     </div>
                 </div>
@@ -268,8 +278,16 @@ print(LazyLua.String.len(str))
 print(LazyLua.String.at(str, 8)) 
 -- Output the 8th character: 界
 
-print(LazyLua.String.substr(str, 1, 5)) 
--- Output substring: Hello</pre>
+-- String splitting and joining
+local parts = LazyLua.String.split(
+    "apple,banana,cherry", 
+    ","
+)
+print(LazyLua.String.join(parts, " | ")) 
+-- Output: apple | banana | cherry
+
+-- Find substring
+print(LazyLua.String.indexof(str, "世界")) -- Output: 7</pre>
                         </div>
                     </div>
                 </div>
@@ -294,7 +312,24 @@ print(LazyLua.Sort.applyIndices(
     sorted_indices, 
     numbers
 )) 
--- Output sorted array: 1, 2, 5, 8</pre>
+-- Output sorted array: 1, 2, 5, 8
+
+-- For descending order
+local desc_indices = LazyLua.Sort.quick(
+    numbers, 
+    LazyLua.Sort.DESC
+)
+print(LazyLua.Sort.applyIndices(
+    desc_indices, 
+    numbers
+)) 
+-- Output sorted array: 8, 5, 2, 1
+
+-- Bubble sort (stable sort)
+local stable_indices = LazyLua.Sort.bubble(
+    numbers, 
+    LazyLua.Sort.ASC
+)</pre>
                         </div>
                     </div>
                 </div>
@@ -319,38 +354,48 @@ print(LazyLua.Sort.applyIndices(
                     <ul class="space-y-3 text-gray-300">
                         <li class="flex">
                             <code
-                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[100px]">add(a, b)</code>
-                            <span>High-precision addition</span>
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">add(a, b)</code>
+                            <span>High-precision addition (supports negatives)</span>
                         </li>
                         <li class="flex">
                             <code
-                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[100px]">sub(a, b)</code>
-                            <span>High-precision subtraction</span>
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">sub(a, b)</code>
+                            <span>High-precision subtraction (supports negatives)</span>
                         </li>
                         <li class="flex">
                             <code
-                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[100px]">mul(a, b)</code>
-                            <span>High-precision multiplication</span>
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">mul(a, b)</code>
+                            <span>High-precision multiplication (supports negatives)</span>
                         </li>
                         <li class="flex">
                             <code
-                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[100px]">div(a, b)</code>
-                            <span>High-precision division (integer part)</span>
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">div(a, b, up_to)</code>
+                            <span>Division with precision control (default 50)</span>
                         </li>
                         <li class="flex">
                             <code
-                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[100px]">greaterThan(a, b)</code>
-                            <span>Check if a > b</span>
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">greaterThan(a, b)</code>
+                            <span>Check if a > b (supports negatives)</span>
                         </li>
                         <li class="flex">
                             <code
-                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[100px]">lessThan(a, b)</code>
-                            <span>Check if a < b</span>
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">lessThan(a, b)</code>
+                            <span>Check if a < b (supports negatives)</span>
                         </li>
                         <li class="flex">
                             <code
-                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[100px]">normalize(s)</code>
-                            <span>Normalize a number string</span>
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">lessThanOrEqual(a, b)</code>
+                            <span>Check if a ≤ b (supports negatives)</span>
+                        </li>
+                        <li class="flex">
+                            <code
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">greaterThanOrEqual(a, b)</code>
+                            <span>Check if a ≥ b (supports negatives)</span>
+                        </li>
+                        <li class="flex">
+                            <code
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">normalize(s)</code>
+                            <span>Normalize number string</span>
                         </li>
                     </ul>
                 </div>
@@ -363,33 +408,63 @@ print(LazyLua.Sort.applyIndices(
                     <ul class="space-y-3 text-gray-300">
                         <li class="flex">
                             <code
-                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[100px]">len(str)</code>
-                            <span>Get character length</span>
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">len(str)</code>
+                            <span>Get character length (UTF-8)</span>
                         </li>
                         <li class="flex">
                             <code
-                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[100px]">at(str, index)</code>
-                            <span>Get character at index</span>
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">at(str, index)</code>
+                            <span>Get character at index (1-based)</span>
                         </li>
                         <li class="flex">
                             <code
-                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[100px]">substr(s, start, end)</code>
-                            <span>Get substring</span>
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">charat(str, index)</code>
+                            <span>Get character at index (0-based)</span>
                         </li>
                         <li class="flex">
                             <code
-                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[100px]">split(str, delimiter)</code>
-                            <span>Split string</span>
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">substr(s, start, end_)</code>
+                            <span>Get substring (UTF-8 support)</span>
                         </li>
                         <li class="flex">
                             <code
-                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[100px]">replace(s, old, new, limit)</code>
-                            <span>Replace substrings</span>
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">split(str, delimiter)</code>
+                            <span>Split string by delimiter</span>
                         </li>
                         <li class="flex">
                             <code
-                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[100px]">includes(s, substr)</code>
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">join(list, separator)</code>
+                            <span>Join array with separator</span>
+                        </li>
+                        <li class="flex">
+                            <code
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">replace(s, old, new, limit)</code>
+                            <span>Replace substrings (with limit)</span>
+                        </li>
+                        <li class="flex">
+                            <code
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">includes(s, substr)</code>
                             <span>Check if contains substring</span>
+                        </li>
+                        <li class="flex">
+                            <code
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">indexof(s, substr, start)</code>
+                            <span>Find first occurrence</span>
+                        </li>
+                        <li class="flex">
+                            <code
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">lastindexof(s, substr)</code>
+                            <span>Find last occurrence</span>
+                        </li>
+                        <li class="flex">
+                            <code
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">left(str, n)</code>
+                            <span>Get leftmost n characters</span>
+                        </li>
+                        <li class="flex">
+                            <code
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">Repeat(str, n)</code>
+                            <span>Repeat string n times</span>
                         </li>
                     </ul>
                 </div>
@@ -402,30 +477,182 @@ print(LazyLua.Sort.applyIndices(
                     <ul class="space-y-3 text-gray-300">
                         <li class="flex">
                             <code
-                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[100px]">bubble(arr, method)</code>
-                            <span>Bubble sort (returns indices)</span>
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">bubble(arr, method)</code>
+                            <span>Bubble sort (stable, returns indices)</span>
                         </li>
                         <li class="flex">
                             <code
-                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[100px]">quick(arr, method)</code>
-                            <span>Quick sort (returns indices)</span>
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">quick(arr, method)</code>
+                            <span>Quick sort (faster, returns indices)</span>
                         </li>
                         <li class="flex">
                             <code
-                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[100px]">applyIndices(i, arr)</code>
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">applyIndices(i, arr)</code>
                             <span>Apply indices to reorder array</span>
                         </li>
                         <li class="flex">
                             <code
-                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[100px]">Sort.ASC</code>
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">Sort.ASC</code>
                             <span>Ascending order constant</span>
                         </li>
                         <li class="flex">
                             <code
-                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[100px]">Sort.DESC</code>
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">Sort.DESC</code>
                             <span>Descending order constant</span>
                         </li>
                     </ul>
+                    
+                    <h3 class="text-xl font-semibold mt-8 mb-4 flex items-center">
+                        <i class="fa fa-table text-primary mr-2"></i> Additional Utilities
+                    </h3>
+                    <ul class="space-y-3 text-gray-300">
+                        <li class="flex">
+                            <code
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">to2DTable(text, rowSep, colSep)</code>
+                            <span>Convert text to 2D table</span>
+                        </li>
+                        <li class="flex">
+                            <code
+                                class="bg-darker px-2 py-1 rounded text-primary font-mono text-sm mr-3 min-w-[120px]">column(table2D, index, default)</code>
+                            <span>Extract column from 2D table</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Performance Section -->
+    <section id="performance" class="py-20 bg-darker/50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Performance Notes</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto">Optimized for both small and large data processing</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div class="bg-dark border border-primary/10 rounded-xl p-6 hover-lift">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fa fa-bolt text-primary mr-2"></i> Math Optimization
+                    </h3>
+                    <ul class="space-y-3 text-gray-300">
+                        <li class="flex items-start">
+                            <i class="fa fa-check text-secondary mt-1 mr-2"></i>
+                            <span><strong>Addition:</strong> Chunked processing for numbers > 12 digits (base 10^12)</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check text-secondary mt-1 mr-2"></i>
+                            <span><strong>Subtraction:</strong> Chunked processing for numbers > 12 digits</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check text-secondary mt-1 mr-2"></i>
+                            <span><strong>Multiplication:</strong> Naive algorithm (≤100 digits), Karatsuba (>100 digits)</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check text-secondary mt-1 mr-2"></i>
+                            <span><strong>Division:</strong> Long division with configurable precision</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check text-secondary mt-1 mr-2"></i>
+                            <span><strong>Negative Numbers:</strong> Full support with optimized sign handling</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-dark border border-primary/10 rounded-xl p-6 hover-lift">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fa fa-tachometer text-primary mr-2"></i> Performance Characteristics
+                    </h3>
+                    <ul class="space-y-3 text-gray-300">
+                        <li class="flex items-start">
+                            <i class="fa fa-info-circle text-primary mt-1 mr-2"></i>
+                            <span><strong>Small Numbers:</strong> Direct computation for maximum speed</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-info-circle text-primary mt-1 mr-2"></i>
+                            <span><strong>Large Numbers:</strong> Algorithm switching based on input size</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-info-circle text-primary mt-1 mr-2"></i>
+                            <span><strong>String Processing:</strong> UTF-8 optimized with minimal overhead</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-info-circle text-primary mt-1 mr-2"></i>
+                            <span><strong>Sorting:</strong> QuickSort for large arrays, BubbleSort for stability</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-info-circle text-primary mt-1 mr-2"></i>
+                            <span><strong>Memory Usage:</strong> Efficient string handling to minimize overhead</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Changelog Section -->
+    <section id="changelog" class="py-20">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Changelog</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto">Track the development and improvements of LazyLua</p>
+            </div>
+
+            <div class="max-w-3xl mx-auto bg-dark border border-primary/10 rounded-xl overflow-hidden">
+                <!-- v1.2.0 -->
+                <div class="border-b border-primary/10 last:border-b-0">
+                    <div class="bg-primary/10 px-6 py-4 flex justify-between items-center">
+                        <h3 class="font-semibold text-lg">v1.2.0 (2025/11/8)</h3>
+                        <span class="bg-primary/20 text-primary px-3 py-1 rounded-full text-sm">Major Update</span>
+                    </div>
+                    <div class="p-6 text-gray-300 space-y-3">
+                        <div class="flex items-start">
+                            <span class="bg-primary/20 text-primary px-2 py-1 rounded text-xs font-medium mr-3 mt-1">Performance</span>
+                            <div>
+                                <strong>Math module optimizations:</strong>
+                                <ul class="list-disc list-inside ml-2 mt-1 space-y-1">
+                                    <li>Chunked addition for numbers > 12 digits using base 10^12</li>
+                                    <li>Chunked subtraction for numbers > 12 digits</li>
+                                    <li>Karatsuba multiplication algorithm for numbers > 100 digits</li>
+                                    <li>Optimized division algorithm</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="bg-secondary/20 text-secondary px-2 py-1 rounded text-xs font-medium mr-3 mt-1">Feature</span>
+                            <div>Added support for negative numbers in all math operations</div>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="bg-secondary/20 text-secondary px-2 py-1 rounded text-xs font-medium mr-3 mt-1">Improvement</span>
+                            <div>Improved error handling and input validation</div>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs font-medium mr-3 mt-1">Bug Fix</span>
+                            <div>Minor bug fixes in string processing functions</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- v1.0.0 -->
+                <div>
+                    <div class="bg-primary/5 px-6 py-4 flex justify-between items-center">
+                        <h3 class="font-semibold text-lg">v1.0.0 (2025/10/18)</h3>
+                        <span class="bg-gray-700 text-gray-300 px-3 py-1 rounded-full text-sm">Initial Release</span>
+                    </div>
+                    <div class="p-6 text-gray-300 space-y-3">
+                        <div class="flex items-start">
+                            <span class="bg-secondary/20 text-secondary px-2 py-1 rounded text-xs font-medium mr-3 mt-1">Feature</span>
+                            <div>Implemented high-precision math operations (Math module)</div>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="bg-secondary/20 text-secondary px-2 py-1 rounded text-xs font-medium mr-3 mt-1">Feature</span>
+                            <div>Implemented enhanced string processing (String module)</div>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="bg-secondary/20 text-secondary px-2 py-1 rounded text-xs font-medium mr-3 mt-1">Feature</span>
+                            <div>Implemented sorting algorithms (Sort module)</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -444,7 +671,7 @@ print(LazyLua.Sort.applyIndices(
                     Download LazyLua today and unlock powerful functionality for your Lua applications.
                 </p>
                 <div class="flex flex-col sm:flex-row justify-center gap-4">
-                    <a href="LazyLua.lua" download
+                    <a href="main.lua"
                         class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-md text-lg font-medium transition-all">
                         <i class="fa fa-download mr-1"></i> Download LazyLua
                     </a>
